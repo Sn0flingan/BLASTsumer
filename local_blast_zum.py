@@ -50,9 +50,9 @@ def get_arguments():
     parser.add_argument("-o", "--output", help="name of output file",
                         required=True)
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
-                        default=80)
+                        default=80.0, type=float)
     parser.add_argument("--eval", help="Threshold of e-val of hits",
-                        default=1e-100)
+                        default=1e-50, type=float)
     return parser.parse_args()
 
 def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
@@ -60,8 +60,8 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
         for line in res_file:
             query_res = line.split('\t')
             hit_name = query_res[2]
-            perc_id = query_res[3]
-            e_val = query_res[3]
+            perc_id = float(query_res[3])
+            e_val = float(query_res[4])
             if perc_id < perc_id_thresh or e_val > e_val_thresh:
                 hit_name = 'None'
             if hit_name in hits:
