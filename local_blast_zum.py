@@ -12,8 +12,8 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 
 def main():
     args = get_arguments()
-    output_file = "temp_out.txt"
-    file_out = "res.txt"
+    result_file = "temp_out.txt"
+    output_file = "res.txt"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -32,11 +32,11 @@ def main():
     for file in files:
         blastn_cmd=NcbiblastnCommandline(query=file, db="nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
-                                 outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=output_file)
+                                 outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
         stdout, stderr = blastn_cmd()
-        hits = summarize_blast_results(output_file, hits)
+        hits = summarize_blast_results(result_file, hits)
 
-    save_2_file(hits,file_out)
+    save_2_file(hits,output_file)
 
 def get_arguments():
     parser = argparse.ArgumentParser()
