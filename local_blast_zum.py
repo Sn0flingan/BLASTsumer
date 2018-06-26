@@ -48,10 +48,10 @@ def get_arguments():
     parser.add_argument("-v", "--verbose", help="print more info",
                         action="store_true")
     parser.add_argument("-o", "--output", help="name of output file",
-                        default="result_blastzummer.txt")
+                        required=True)
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
                         default=80)
-    parser.add_argument("--eval", help"Threshold of e-val of hits",
+    parser.add_argument("--eval", help="Threshold of e-val of hits",
                         default=1e-100)
     return parser.parse_args()
 
