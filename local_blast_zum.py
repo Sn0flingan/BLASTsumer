@@ -27,12 +27,13 @@ def main():
         print("\n---- Loaded input files ----")
         print(*files, sep='\n')
 
+    hits = {}
     for file in files:
         blastn_cmd=NcbiblastnCommandline(query=file, db="nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
                                  outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=output_file)
         stdout, stderr = blastn_cmd()
-        hits = summarize_blast_results(output_file)
+        hits = summarize_blast_results(output_file, hits)
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -41,8 +42,7 @@ def get_arguments():
                         action="store_true")
     return parser.parse_args()
 
-def summarize_blast_results(results_file):
-    hits = {}
+def summarize_blast_results(results_file, hits):
     open(results_file) as res_file:
         for line in res_file:
             query_res = line.split('\t')
