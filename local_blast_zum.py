@@ -6,7 +6,7 @@
 #
 
 import argparse
-from os import listdir
+from os import listdir, rm
 from os.path import isdir, isfile, join
 from Bio.Blast.Applications import NcbiblastnCommandline
 
@@ -56,6 +56,7 @@ def summarize_blast_results(results_file, hits):
                 hits[hit_name] = 1
         res_file.close()
 
+    rm(results_file)
     return hits
 
 def save_2_file(hits, file):
