@@ -6,14 +6,15 @@
 #
 
 import argparse
-from os import listdir, rm
+from os import listdir, remove
 from os.path import isdir, isfile, join
 from Bio.Blast.Applications import NcbiblastnCommandline
 
+
 def main():
     args = get_arguments()
-    result_file = "temp_out.txt"
-    output_file = "res.txt"
+    result_file = "../larvkult_1508/temp_out.txt"
+    output_file = "../larvkult_1508/res_1-3rc.txt"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -32,13 +33,13 @@ def main():
     for file in files:
         if args.verbose:
             print("\nBlasting file: {}".format(file))
-        blastn_cmd=NcbiblastnCommandline(query=file, db="nematodeDB",
+        blastn_cmd=NcbiblastnCommandline(query=file, db="../larvkult_1508/nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
                                  outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
         stdout, stderr = blastn_cmd()
         hits = summarize_blast_results(result_file, hits)
 
-    save_2_file(hits,output_file)
+    save_2_file(hits,output_file, args.verbose)
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -48,7 +49,7 @@ def get_arguments():
     return parser.parse_args()
 
 def summarize_blast_results(results_file, hits):
-    open(results_file) as res_file:
+    with open(results_file) as res_file:
         for line in res_file:
             query_res = line.split('\t')
             hit_name = query_res[2]
@@ -58,18 +59,18 @@ def summarize_blast_results(results_file, hits):
                 hits[hit_name] = 1
         res_file.close()
 
-    rm(results_file)
+    remove(results_file)
     return hits
 
-def save_2_file(hits, file):
+def save_2_file(hits, result_file, verbosity):
     tuple_hits = [ (organism, cnt) for organism, cnt in hits.items()]
     sorted_hits = sorted(tuple_hits, key=lambda x: x[1], reverse=True)
     sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
     
-    if args.verbose:
+    if verbosity:
         print("\n---- Top 10 hits ----")
-        print(*sorted_hits_str[:10], sep='\n')
-        print("\nSaving results to: {}".format(output_file))
+        print(*sorted_hits_str[:10], sep='')
+        print("\nSaving results to: {}".format(result_file))
 
     filehandle = open(result_file, "w")
     filehandle.writelines(sorted_hits_str)
