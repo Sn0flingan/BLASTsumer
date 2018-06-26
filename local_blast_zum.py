@@ -6,14 +6,22 @@
 #
 
 import argparse
+from os import listdir
+from os.path import isdir, isfile, join
 
 def main():
     args = get_arguments()
-
-    if args.verbose:
-        print("verbosity on")
-
-    print(args.input)
+    
+    if isdir(args.input):
+        files = [file for file in listdir(args.input)
+                 if isfile(join(args.input, file)) and
+                 file.split('.')[1]=="fa"]
+    elif isfile(args.input):
+        files = [args.input]
+    else:
+        raise NameError('Input file or directory does not exist')
+    
+    print(files)
 
 def get_arguments():
     parser = argparse.ArgumentParser()
