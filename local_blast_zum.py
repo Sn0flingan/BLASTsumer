@@ -13,6 +13,7 @@ from Bio.Blast.Applications import NcbiblastnCommandline
 def main():
     args = get_arguments()
     output_file = "temp_out.txt"
+    file_out = "res.txt"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -35,6 +36,8 @@ def main():
         stdout, stderr = blastn_cmd()
         hits = summarize_blast_results(output_file, hits)
 
+    save_2_file(hits,file_out)
+
 def get_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument("input", help="the input fasta files")
@@ -55,8 +58,13 @@ def summarize_blast_results(results_file, hits):
 
     return hits
 
+def save_2_file(hits, file):
     tuple_hits = [ (organism, cnt) for organism, cnt in hits.items()]
     sorted_hits = sorted(tuple_hits, key=lambda x: x[1], reverse=True)
     sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
+
+    filehandle = open(result_file, "w")
+    filehandle.writelines(sorted_hits_str)
+    filehandle.close()
 
 main()
