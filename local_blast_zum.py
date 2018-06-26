@@ -30,6 +30,8 @@ def main():
 
     hits = {}
     for file in files:
+        if args.verbose:
+            print("\nBlasting file: {}".format(file))
         blastn_cmd=NcbiblastnCommandline(query=file, db="nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
                                  outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
@@ -63,6 +65,11 @@ def save_2_file(hits, file):
     tuple_hits = [ (organism, cnt) for organism, cnt in hits.items()]
     sorted_hits = sorted(tuple_hits, key=lambda x: x[1], reverse=True)
     sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
+    
+    if args.verbose:
+        print("\n---- Top 10 hits ----")
+        print(*sorted_hits_str[:10], sep='\n')
+        print("\nSaving results to: {}".format(output_file))
 
     filehandle = open(result_file, "w")
     filehandle.writelines(sorted_hits_str)
