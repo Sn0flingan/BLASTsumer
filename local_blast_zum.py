@@ -36,7 +36,7 @@ def main():
                                  max_target_seqs=1, gapopen=2, gapextend=3,
                                  outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
         stdout, stderr = blastn_cmd()
-        hits = summarize_blast_results(result_file, hits)
+        hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
 
     save_2_file(hits,args.output, args.verbose)
 
@@ -49,13 +49,21 @@ def get_arguments():
                         action="store_true")
     parser.add_argument("-o", "--output", help="name of output file",
                         default="result_blastzummer.txt")
+    parser.add_argument("--pid", help="Threshold of percentage identity of hits",
+                        default=80)
+    parser.add_argument("--eval", help"Threshold of e-val of hits",
+                        default=1e-100)
     return parser.parse_args()
 
-def summarize_blast_results(results_file, hits):
+def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     with open(results_file) as res_file:
         for line in res_file:
             query_res = line.split('\t')
             hit_name = query_res[2]
+            perc_id = query_res[3]
+            e_val = query_res[3]
+            if perc_id < perc_id_thresh or e_val > e_val_thresh:
+                hit_name = 'None'
             if hit_name in hits:
                 hits[hit_name] += 1
             else:
