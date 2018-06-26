@@ -8,9 +8,11 @@
 import argparse
 from os import listdir
 from os.path import isdir, isfile, join
+from Bio.Blast.Applications import NcbiblastnCommandline
 
 def main():
     args = get_arguments()
+    output_file = "temp_out.txt"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -20,8 +22,18 @@ def main():
         files = [args.input]
     else:
         raise NameError('Input file or directory does not exist')
-    
-    print(files)
+
+    if args.verbose:
+        print("\n---- Loaded input files ----")
+        print(*files, sep='\n')
+
+    return
+
+    for file in files:
+        blastn_cmd=NcbiblastnCommandline(query=file, db="nematodeDB",
+                                 max_target_seqs=1, gapopen=2, gapextend=3,
+                                 outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=output_file)
+        stdout, stderr = blastn_cmd()
 
 def get_arguments():
     parser = argparse.ArgumentParser()
@@ -29,5 +41,6 @@ def get_arguments():
     parser.add_argument("-v", "--verbose", help="print more info",
                         action="store_true")
     return parser.parse_args()
+
 
 main()
