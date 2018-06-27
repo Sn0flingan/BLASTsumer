@@ -1,3 +1,5 @@
+from statistics import mean
+
 class Match_db:
     
     def __init__(self, sn, name, pid, alg_len, e_val, mm, gaps, gaps_o, read):
@@ -20,4 +22,12 @@ class Match_db:
                             go=self.gap_openings, r=self.read)
 
     def __str__(self):
-        return "Name: {} \nCount: {}".format(self.short_name, self.count)
+        def preview(lst):
+            if len(lst) == 0:
+                return ""
+            elif len(lst) <= 3:
+                return ", ".join(lst)
+            else:
+                return ", ".join(lst[:3]) + ",..."
+
+        return '''Name: {} \nCount: {} \n%ID-avg: {} \nAlign Len-avg: {} \nE-val-avg: {} \nMissmatch-avg: {} \nGaps-avg: {} \nGap openings-avg: {} \nReads: {}, ...'''.format(self.short_name, self.count, mean(self.pid), mean(self.alg_len), mean(self.e_val), mean(self.missmatch), mean(self.gaps), mean(self.gap_openings), preview(self.read) )
