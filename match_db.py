@@ -13,6 +13,16 @@ class Match_db:
         self.gaps = [gaps]
         self.gap_openings = [gaps_o]
         self.read = [read]
+    
+    def add_read(self, read_name, pid, alg_len, e_val, mm, gaps, gaps_o):
+        self.count += 1
+        self.read.append(read_name)
+        self.pid.append(pid)
+        self.alg_len.append(alg_len)
+        self.e_val.append(e_val)
+        self.missmatch.append(mm)
+        self.gaps.append(gaps)
+        self.gap_openings.append(gaps_o)
 
     def __repr__(self):
         return '''Match_db([{sn},{n}, {c}, {pid}, {al}, {e}, {m}, {g}, {go}, {r}])''' .format(sn=self.short_name, n=self.name, \
@@ -30,4 +40,4 @@ class Match_db:
             else:
                 return ", ".join(lst[:3]) + ",..."
 
-        return '''Name: {} \nCount: {} \n%ID-avg: {} \nAlign Len-avg: {} \nE-val-avg: {} \nMissmatch-avg: {} \nGaps-avg: {} \nGap openings-avg: {} \nReads: {}, ...'''.format(self.short_name, self.count, mean(self.pid), mean(self.alg_len), mean(self.e_val), mean(self.missmatch), mean(self.gaps), mean(self.gap_openings), preview(self.read) )
+        return '''Name: {} \nCount: {} \n%ID-avg: {} \nAlign Len-avg: {} \nE-val-avg: {} \nMissmatch-avg: {} \nGaps-avg: {} \nGap openings-avg: {} \nReads: {}'''.format(self.short_name, self.count, mean(self.pid), mean(self.alg_len), mean(self.e_val), mean(self.missmatch), mean(self.gaps), mean(self.gap_openings), preview(self.read) )
