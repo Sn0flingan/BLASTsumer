@@ -2,25 +2,25 @@ from statistics import mean
 
 class Match_db:
     
-    def __init__(self, sn, name, pid, alg_len, e_val, mm, gaps, gaps_o, read):
+    def __init__(self, sn, name, pid, alg_len, e_val, missmatch, gaps, gaps_o, read):
         self.short_name = sn
         self.name = name
         self.count = 1
         self.pid = [pid]
         self.alg_len = [alg_len]
         self.e_val= [e_val]
-        self.missmatch = [mm]
+        self.missmatch = [missmatch]
         self.gaps = [gaps]
         self.gap_openings = [gaps_o]
         self.read = [read]
     
-    def add_read(self, read_name, pid, alg_len, e_val, mm, gaps, gaps_o):
+    def add_read(self, read, pid, alg_len, e_val, missmatch, gaps, gaps_o):
         self.count += 1
-        self.read.append(read_name)
+        self.read.append(read)
         self.pid.append(pid)
         self.alg_len.append(alg_len)
         self.e_val.append(e_val)
-        self.missmatch.append(mm)
+        self.missmatch.append(missmatch)
         self.gaps.append(gaps)
         self.gap_openings.append(gaps_o)
 

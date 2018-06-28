@@ -9,7 +9,8 @@ import argparse
 from os import listdir, remove
 from os.path import isdir, isfile, join
 from Bio.Blast.Applications import NcbiblastnCommandline
-
+from statistics import mean
+from match_db import Match_db
 
 def main():
     args = get_arguments()
@@ -28,7 +29,7 @@ def main():
         print("\n---- Loaded input files ----")
         print(*files, sep='\n')
 
-    hits = {}
+    hits ={}
     for file in files:
         if args.verbose:
             print("\nBlasting file: {}".format(file))
@@ -59,24 +60,37 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     with open(results_file) as res_file:
         for line in res_file:
             query_res = line.split('\t')
-            hit_name = query_res[2]
+            short_name = query_res[1]
             perc_id = float(query_res[3])
             e_val = float(query_res[4])
             if perc_id < perc_id_thresh or e_val > e_val_thresh:
-                hit_name = 'None'
-            if hit_name in hits:
-                hits[hit_name] += 1
+                short_name = 'None'
+                query_res[2] = 'None'
+            if short_name in hits:
+                hits[short_name].add_read(read=query_res[0],
+                                          pid=perc_id, alg_len=int(query_res[5]),
+                                          e_val=e_val, missmatch=int(query_res[8]),
+                                          gaps=int(query_res[10]),
+                                          gaps_o=int(query_res[9]))
             else:
-                hits[hit_name] = 1
+                hits[short_name] = Match_db(sn=short_name, name=query_res[2],
+                                            pid=perc_id, alg_len=int(query_res[5]),
+                                            e_val=e_val, missmatch=int(query_res[8]),
+                                            gaps=int(query_res[10]),
+                                            gaps_o=int(query_res[9]),
+                                            read=query_res[0])
         res_file.close()
 
     remove(results_file)
     return hits
 
 def save_2_file(hits, result_file, verbosity):
-    tuple_hits = [ (organism, cnt) for organism, cnt in hits.items()]
+    tuple_hits = [ [match.name, match.count, mean(match.pid), mean(match.e_val),
+                    mean(match.alg_len), mean(match.missmatch), mean(match.gaps),
+                    mean(match.gap_openings)] for short_name, match in hits.items()]
     sorted_hits = sorted(tuple_hits, key=lambda x: x[1], reverse=True)
-    sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
+    sorted_hits_str = ["\t".join(list(map(str, hit)))+"\n" for hit in sorted_hits]
+    #sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
     
     if verbosity:
         print("\n---- Top 10 hits ----")
