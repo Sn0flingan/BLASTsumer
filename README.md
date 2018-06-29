@@ -1,4 +1,7 @@
-# BLAST sum:er
+![alt text][logo]
+
+[logo]: https://github.com/Sn0flingan/BLASTsumer/raw/master/images/BLAST-sumer-banner.png "BLAST summer logo"
+
 Simple python script to run BLAST on a local database over many sequences and sum up the results. Also includes proper output to analyse how different statistics such as % identity, alignment length, missmatches...etc. covariate.
 
 To run the script:
