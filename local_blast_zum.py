@@ -6,8 +6,8 @@
 #
 
 import argparse
-from os import listdir, remove
-from os.path import isdir, isfile, join
+from os import listdir, remove, makedirs
+from os.path import exists, isdir, isfile, join
 from statistics import mean
 from Bio.Blast.Applications import NcbiblastnCommandline
 from match_db import Match_db
@@ -44,7 +44,7 @@ def main():
         hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
 
     save_2_file(hits,args.output, args.verbose)
-    plot_results(hits)
+    plot_results(hits, args.output)
 
 
 
@@ -53,13 +53,18 @@ def get_arguments():
     parser.add_argument("input", help="the input fasta files")
     parser.add_argument("-v", "--verbose", help="print more info",
                         action="store_true")
-    parser.add_argument("-o", "--output", help="name of output file",
+    parser.add_argument("-o", "--output", help="name of output directory",
                         required=True)
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
                         default=80.0, type=float)
     parser.add_argument("--eval", help="Threshold of e-val of hits",
                         default=1e-50, type=float)
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.output[len(args.output)-1]=='/':
+        args.output = args.output[len(args.output)-2]
+    if not exists(args.output):
+        makedirs(output_dir)
+    return args
 
 def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     with open(results_file) as res_file:
@@ -89,24 +94,24 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     remove(results_file)
     return hits
 
-def save_2_file(hits, result_file, verbosity):
+def save_2_file(hits, output_dir, verbosity):
+    output_file = output_dir + "/BLASTsumer_results.txt"
     tuple_hits = [ [match.name, match.count, mean(match.pid), mean(match.e_val),
                     mean(match.alg_len), mean(match.missmatch), mean(match.gaps),
                     mean(match.gap_openings)] for short_name, match in hits.items()]
     sorted_hits = sorted(tuple_hits, key=lambda x: x[1], reverse=True)
     sorted_hits_str = ["\t".join(list(map(str, hit)))+"\n" for hit in sorted_hits]
-    #sorted_hits_str = ["{}\t{}\n".format(organism, cnt) for organism, cnt in sorted_hits]
     
     if verbosity:
         print("\n---- Top 10 hits ----")
         print(*sorted_hits_str[:10], sep='')
-        print("\nSaving results to: {}".format(result_file))
+        print("\nSaving results to: {}".format(output_dir))
 
-    filehandle = open(result_file, "w")
+    filehandle = open(output_dir, "w")
     filehandle.writelines(sorted_hits_str)
     filehandle.close()
 
-def plot_results(hits):
+def plot_results(hits, output_dir):
     sns.set(style="whitegrid")
     
     for name, hit in hits.items():
@@ -123,7 +128,7 @@ def plot_results(hits):
         plot = plot.map_lower(sns.kdeplot, cmap="Blues_d")
         plot = plot.map_diag(sns.distplot)
         fig = plot.fig
-        fig.savefig(name + "_result.png")
+        fig.savefig(output_dir + '/' + name + "_result.png")
         print(hit_df.head())
 
 main()
