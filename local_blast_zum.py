@@ -8,9 +8,13 @@
 import argparse
 from os import listdir, remove
 from os.path import isdir, isfile, join
-from Bio.Blast.Applications import NcbiblastnCommandline
 from statistics import mean
+from Bio.Blast.Applications import NcbiblastnCommandline
 from match_db import Match_db
+import seaborn as sns
+import matplotlib.pyplot as plt
+import pandas as pd
+from numpy import log10
 
 def main():
     args = get_arguments()
@@ -40,6 +44,7 @@ def main():
         hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
 
     save_2_file(hits,args.output, args.verbose)
+    plot_results(hits)
 
 
 
@@ -101,6 +106,24 @@ def save_2_file(hits, result_file, verbosity):
     filehandle.writelines(sorted_hits_str)
     filehandle.close()
 
-
+def plot_results(hits):
+    sns.set(style="whitegrid")
+    
+    for name, hit in hits.items():
+        if hit.count < 100:
+            continue
+        hit_dict = {'%id': hit.pid,
+                    'length': hit.alg_len,
+                    'missmatch': hit.missmatch,
+                    'gaps': hit.gaps,
+                    'gap openings': hit.gap_openings}
+        hit_df = pd.DataFrame.from_dict(hit_dict)
+        plot = sns.PairGrid(hit_df)
+        plot = plot.map_upper(plt.scatter)
+        plot = plot.map_lower(sns.kdeplot, cmap="Blues_d")
+        plot = plot.map_diag(sns.distplot)
+        fig = plot.fig
+        fig.savefig(name + "_result.png")
+        print(hit_df.head())
 
 main()
