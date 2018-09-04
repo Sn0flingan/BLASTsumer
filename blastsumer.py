@@ -63,7 +63,7 @@ def get_arguments():
     if args.output[len(args.output)-1]=='/':
         args.output = args.output[len(args.output)-2]
     if not exists(args.output):
-        makedirs(output_dir)
+        makedirs(args.output)
     return args
 
 def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
