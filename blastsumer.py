@@ -74,7 +74,7 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
             perc_id = float(query_res[3])
             e_val = float(query_res[4])
             alg_len=int(query_res[5])
-            if alg_len > 150 and (perc_id < perc_id_thresh or e_val > e_val_thresh):
+            if alg_len < 150 or perc_id < perc_id_thresh or e_val > e_val_thresh:
                 short_name = 'None'
                 query_res[2] = 'None'
             if short_name in hits:
