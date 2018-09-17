@@ -37,7 +37,7 @@ def main():
     for file in files:
         if args.verbose:
             print("\nBlasting file: {}".format(file))
-        blastn_cmd=NcbiblastnCommandline(query=file, db="../larvkult_1508/nematodeDB",
+        blastn_cmd=NcbiblastnCommandline(query=file, db="../../larvkult_1508/nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
                                  outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
         stdout, stderr = blastn_cmd()
@@ -56,7 +56,7 @@ def get_arguments():
     parser.add_argument("-o", "--output", help="name of output directory",
                         required=True)
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
-                        default=80.0, type=float)
+                        default=60.0, type=float)
     parser.add_argument("--eval", help="Threshold of e-val of hits",
                         default=1e-50, type=float)
     args = parser.parse_args()
@@ -73,7 +73,8 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
             short_name = query_res[1]
             perc_id = float(query_res[3])
             e_val = float(query_res[4])
-            if perc_id < perc_id_thresh or e_val > e_val_thresh:
+            alg_len=int(query_res[5])
+            if alg_len > 150 and (perc_id < perc_id_thresh or e_val > e_val_thresh):
                 short_name = 'None'
                 query_res[2] = 'None'
             if short_name in hits:
@@ -107,7 +108,7 @@ def save_2_file(hits, output_dir, verbosity):
         print(*sorted_hits_str[:10], sep='')
         print("\nSaving results to: {}".format(output_dir))
 
-    filehandle = open(output_dir, "w")
+    filehandle = open(output_file, "w")
     filehandle.writelines(sorted_hits_str)
     filehandle.close()
 
