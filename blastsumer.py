@@ -57,11 +57,9 @@ def main():
                     match_len = float(hsp.find('Hsp_identity').text)
                     perc_match = match_len/hit_len
                     matches[hit_name] = perc_match*100
-                    #print("Percentage match: {}%".format(perc_match*100))
             best_hit = max(matches, key=matches.get)
             print("{}% {}".format(round(matches[best_hit],2), best_hit))
-                #max(matches, key=lambda key: matches[key])
-                    
+        
         return
     '''
     handle = open(result_file)
