@@ -10,6 +10,8 @@ from os import listdir, remove, makedirs
 from os.path import exists, isdir, isfile, join
 from statistics import mean
 from Bio.Blast.Applications import NcbiblastnCommandline
+import xml.etree.ElementTree as ET
+from Bio.Blast import NCBIXML
 from match_db import Match_db
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -24,10 +26,10 @@ def main():
         files = [file for file in listdir(args.input)
                  if isfile(join(args.input, file)) and
                  file.split('.')[1]=="fa"]
-    elif isfile(args.input):
+    elif isfile(args.input) and args.input.split(".")[-1]=="fa":
         files = [args.input]
     else:
-        raise NameError('Input file or directory does not exist')
+        raise NameError('Input file or directory does not exist or is not .fa format')
 
     if args.verbose:
         print("\n---- Loaded input files ----")
@@ -38,12 +40,36 @@ def main():
         if args.verbose:
             print("\nBlasting file: {}".format(file))
         blastn_cmd=NcbiblastnCommandline(query=file, db="../../larvkult_1508/nematodeDB",
-                                 max_target_seqs=1, gapopen=2, gapextend=3,
+                                 max_target_seqs=10, gapopen=2, gapextend=3,
                                  outfmt="5", out=result_file)
         stdout, stderr = blastn_cmd()
-        return
-        hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
 
+        #Parse results
+        tree = ET.parse(result_file)
+        root = tree.getroot()
+        for read in root.iter('Iteration'):
+            print("Read number: " + read.find('Iteration_iter-num').text)
+            for hit in read.iter('Hit'):
+                print(hit.find('Hit_def').text)
+                hit_len = float(hit.find('Hit_len').text)
+                for hsp in hit.iter('Hsp'):
+                    match_len = float(hsp.find('Hsp_identity').text)
+                    perc_match = match_len/hit_len
+                    print("Percentage match: {}%".format(perc_match*100))
+                    
+        return
+    '''
+    handle = open(result_file)
+    result = NCBIXML.read(handle)
+    handle.close()
+    for alignment in result.alignments:
+        for hsp in alignment.hsps:
+            title_element = alignment.title.split()
+            print(title_element[1]+" "+title_element[2]+","+" "+alignment.accession\
+              +","+" "+str(alignment.length))
+        
+        hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
+    '''
     save_2_file(hits,args.output, args.verbose)
     plot_results(hits, args.output)
 
