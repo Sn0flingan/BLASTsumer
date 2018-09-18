@@ -18,7 +18,7 @@ from numpy import log10
 
 def main():
     args = get_arguments()
-    result_file = "temp_out.txt"
+    result_file = "temp_out.xml"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -39,8 +39,9 @@ def main():
             print("\nBlasting file: {}".format(file))
         blastn_cmd=NcbiblastnCommandline(query=file, db="../../larvkult_1508/nematodeDB",
                                  max_target_seqs=1, gapopen=2, gapextend=3,
-                                 outfmt="'6 qseqid sseqid stitle pident evalue length qstart qend mismatch gapopen gaps'", out=result_file)
+                                 outfmt="5", out=result_file)
         stdout, stderr = blastn_cmd()
+        return
         hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
 
     save_2_file(hits,args.output, args.verbose)
@@ -74,6 +75,9 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
             perc_id = float(query_res[3])
             e_val = float(query_res[4])
             alg_len=int(query_res[5])
+            sub_coverage = query_res[-1]
+            print("Coverage: {}".format(sub_coverage))
+            print("Length: {}bp".format(alg_len))
             if alg_len < 150 or perc_id < perc_id_thresh or e_val > e_val_thresh:
                 short_name = 'None'
                 query_res[2] = 'None'
