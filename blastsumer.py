@@ -49,13 +49,18 @@ def main():
         root = tree.getroot()
         for read in root.iter('Iteration'):
             print("Read number: " + read.find('Iteration_iter-num').text)
+            matches = {}
             for hit in read.iter('Hit'):
-                print(hit.find('Hit_def').text)
+                hit_name = hit.find('Hit_def').text
                 hit_len = float(hit.find('Hit_len').text)
                 for hsp in hit.iter('Hsp'):
                     match_len = float(hsp.find('Hsp_identity').text)
                     perc_match = match_len/hit_len
-                    print("Percentage match: {}%".format(perc_match*100))
+                    matches[hit_name] = perc_match*100
+                    #print("Percentage match: {}%".format(perc_match*100))
+            best_hit = max(matches, key=matches.get)
+            print("{}% {}".format(round(matches[best_hit],2), best_hit))
+                #max(matches, key=lambda key: matches[key])
                     
         return
     '''
