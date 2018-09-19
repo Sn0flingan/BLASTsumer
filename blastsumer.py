@@ -35,6 +35,8 @@ def main():
         print("\n---- Loaded input files ----")
         print(*files, sep='\n')
 
+    result_file_2 = "temp_out2.txt"
+    results = open(result_file_2, "w")
     hits ={}
     for file in files:
         if args.verbose:
@@ -49,31 +51,39 @@ def main():
         root = tree.getroot()
         for read in root.iter('Iteration'):
             print("Read number: " + read.find('Iteration_iter-num').text)
+            read_name = read.find('Iteration_query-def').text
             matches = {}
             for hit in read.iter('Hit'):
                 hit_name = hit.find('Hit_def').text
                 hit_len = float(hit.find('Hit_len').text)
                 for hsp in hit.iter('Hsp'):
                     match_len = float(hsp.find('Hsp_identity').text)
-                    perc_match = match_len/hit_len
-                    matches[hit_name] = perc_match*100
-            best_hit = max(matches, key=matches.get)
-            print("{}% {}".format(round(matches[best_hit],2), best_hit))
-        
-        return
-    '''
-    handle = open(result_file)
-    result = NCBIXML.read(handle)
-    handle.close()
-    for alignment in result.alignments:
-        for hsp in alignment.hsps:
-            title_element = alignment.title.split()
-            print(title_element[1]+" "+title_element[2]+","+" "+alignment.accession\
-              +","+" "+str(alignment.length))
-        
-        hits = summarize_blast_results(result_file, hits, args.pid, args.eval)
-    '''
+                    perc_match = round(match_len/hit_len, 4)
+                    identity = float(hsp.find('Hsp_identity').text)
+                    e_val = hsp.find('Hsp_evalue').text
+                    alg_len = hsp.find('Hsp_align-len').text
+                    pid = (identity/float(alg_len))*100
+                    gaps = int(hsp.find('Hsp_gaps').text)
+                    missmatch = int(float(alg_len) - gaps - identity)
+                    matches[hit_name] = [read_name, hit_name.split(" ")[0], hit_name,
+                                         str(pid), e_val, str(alg_len), "0", "0", str(missmatch),
+                                         "0", str(gaps), str(perc_match*100)]
+
+            best_hit = max(matches, key= lambda key: matches[key][-1])
+            print("{}% {}".format(matches[best_hit][-1], best_hit))
+            string_2_write = matches[best_hit][0] + "\t" + matches[best_hit][1] \
+                          + "\t" + matches[best_hit][2] + "\t" + matches[best_hit][3] \
+                          + "\t" + matches[best_hit][4] + "\t" + matches[best_hit][5] \
+                          + "\t" + matches[best_hit][6] +  "\t" + matches[best_hit][7] \
+                          + "\t" + matches[best_hit][8] + "\t" + matches[best_hit][9] \
+                          + "\t" + matches[best_hit][10] + "\t" + matches[best_hit][11] + "\n"
+            results.write(string_2_write)
+
+
+    results.close()
+    hits = summarize_blast_results(result_file_2, hits, args.pid, args.eval)
     save_2_file(hits,args.output, args.verbose)
+    return
     plot_results(hits, args.output)
 
 
@@ -104,9 +114,6 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
             perc_id = float(query_res[3])
             e_val = float(query_res[4])
             alg_len=int(query_res[5])
-            sub_coverage = query_res[-1]
-            print("Coverage: {}".format(sub_coverage))
-            print("Length: {}bp".format(alg_len))
             if alg_len < 150 or perc_id < perc_id_thresh or e_val > e_val_thresh:
                 short_name = 'None'
                 query_res[2] = 'None'
@@ -125,7 +132,7 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
                                             read=query_res[0])
         res_file.close()
 
-    remove(results_file)
+    #remove(results_file)
     return hits
 
 def save_2_file(hits, output_dir, verbosity):
