@@ -50,7 +50,8 @@ def main():
         tree = ET.parse(result_file)
         root = tree.getroot()
         for read in root.iter('Iteration'):
-            print("Read number: " + read.find('Iteration_iter-num').text)
+            if int(read.find('Iteration_iter-num').text)%100==0:
+                print("Read number: " + read.find('Iteration_iter-num').text)
             read_name = read.find('Iteration_query-def').text
             matches = {}
             for hit in read.iter('Hit'):
@@ -69,21 +70,25 @@ def main():
                                          str(pid), e_val, str(alg_len), "0", "0", str(missmatch),
                                          "0", str(gaps), str(perc_match*100)]
 
-            best_hit = max(matches, key= lambda key: matches[key][-1])
-            print("{}% {}".format(matches[best_hit][-1], best_hit))
-            string_2_write = matches[best_hit][0] + "\t" + matches[best_hit][1] \
-                          + "\t" + matches[best_hit][2] + "\t" + matches[best_hit][3] \
-                          + "\t" + matches[best_hit][4] + "\t" + matches[best_hit][5] \
-                          + "\t" + matches[best_hit][6] +  "\t" + matches[best_hit][7] \
-                          + "\t" + matches[best_hit][8] + "\t" + matches[best_hit][9] \
-                          + "\t" + matches[best_hit][10] + "\t" + matches[best_hit][11] + "\n"
+            string_2_write = ""
+            if len(matches)>0:
+                best_hit = max(matches, key= lambda key: matches[key][-1])
+                #print("{}% {}".format(matches[best_hit][-1], best_hit))
+                string_2_write = matches[best_hit][0] + "\t" + matches[best_hit][1] \
+                            + "\t" + matches[best_hit][2] + "\t" + matches[best_hit][3] \
+                            + "\t" + matches[best_hit][4] + "\t" + matches[best_hit][5] \
+                            + "\t" + matches[best_hit][6] +  "\t" + matches[best_hit][7] \
+                            + "\t" + matches[best_hit][8] + "\t" + matches[best_hit][9] \
+                            + "\t" + matches[best_hit][10] + "\t" + matches[best_hit][11] + "\n"
+            else:
+                string_2_write = read_name + "\tshortname\tlongname\t0.0\t1\t0\t0\t0\t0\t0\t0\t0"
+                print("No hit found for read id: {}".format(read_name))
             results.write(string_2_write)
 
 
     results.close()
     hits = summarize_blast_results(result_file_2, hits, args.pid, args.eval)
     save_2_file(hits,args.output, args.verbose)
-    return
     plot_results(hits, args.output)
 
 
@@ -98,7 +103,7 @@ def get_arguments():
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
                         default=60.0, type=float)
     parser.add_argument("--eval", help="Threshold of e-val of hits",
-                        default=1e-50, type=float)
+                        default=1e-10, type=float)
     args = parser.parse_args()
     if args.output[len(args.output)-1]=='/':
         args.output = args.output[len(args.output)-2]
