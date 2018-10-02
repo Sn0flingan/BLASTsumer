@@ -92,17 +92,15 @@ def get_arguments():
     parser.add_argument("input", help="the input fasta files")
     parser.add_argument("-v", "--verbose", help="print more info",
                         action="store_true")
-    parser.add_argument("-o", "--output", help="name of output directory",
+    parser.add_argument("-o", "--output", help="name of output file",
                         required=True)
     parser.add_argument("--pid", help="Threshold of percentage identity of hits",
                         default=60.0, type=float)
     parser.add_argument("--eval", help="Threshold of e-val of hits",
                         default=1e-10, type=float)
     args = parser.parse_args()
-    if args.output[len(args.output)-1]=='/':
-        args.output = args.output[len(args.output)-2]
-    if not exists(args.output):
-        makedirs(args.output)
+    if args.output.split(".")[-1]!='txt':
+        args.output += ".txt"
     return args
 
 def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
@@ -134,8 +132,8 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     #remove(results_file)
     return hits
 
-def save_2_file(hits, output_dir, verbosity):
-    output_file = output_dir + "/BLASTsumer_results.txt"
+def save_2_file(hits, output_file, verbosity):
+    output_file = output_file
     tuple_hits = [ [match.name, match.count, mean(match.pid), mean(match.e_val),
                     mean(match.alg_len), mean(match.missmatch), mean(match.gaps),
                     mean(match.gap_openings)] for short_name, match in hits.items()]
