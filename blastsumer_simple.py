@@ -17,6 +17,8 @@ from match_db import Match_db
 def main():
     args = get_arguments()
     result_file = "temp_out.xml"
+    database_path = "~/nematode_ref/nematodeDB"
+    #"~/Documents/larvkult_1508/nematodeDB"
     
     if isdir(args.input):
         files = [file for file in listdir(args.input)
@@ -37,10 +39,11 @@ def main():
     for file in files:
         if args.verbose:
             print("\nBlasting file: {}".format(file))
-        blastn_cmd=NcbiblastnCommandline(query=file, db="../../larvkult_1508/nematodeDB",
+        blastn_cmd=NcbiblastnCommandline(query=file, db=database_path,
                                  max_target_seqs=10, gapopen=2, gapextend=3,
                                  outfmt="5", out=result_file)
         stdout, stderr = blastn_cmd()
+        print(stdout)
 
         #Parse results
         tree = ET.parse(result_file)
@@ -49,13 +52,18 @@ def main():
             if int(read.find('Iteration_iter-num').text)%100==0:
                 print("Read number: " + read.find('Iteration_iter-num').text)
             read_name = read.find('Iteration_query-def').text
+            read_length = float(read.find('Iteration_query-len').text)
             matches = {}
             for hit in read.iter('Hit'):
                 hit_name = hit.find('Hit_def').text
                 hit_len = float(hit.find('Hit_len').text)
                 for hsp in hit.iter('Hsp'):
                     match_len = float(hsp.find('Hsp_identity').text)
-                    perc_match = round(match_len/hit_len, 4)
+                    perc_match = 0
+                    if hit_len < read_length:
+                        perc_match = round(match_len/hit_len, 4)
+                    else:
+                        perc_match = round(match_len/read_length, 4)
                     identity = float(hsp.find('Hsp_identity').text)
                     e_val = hsp.find('Hsp_evalue').text
                     alg_len = hsp.find('Hsp_align-len').text
@@ -77,8 +85,8 @@ def main():
                             + "\t" + matches[best_hit][8] + "\t" + matches[best_hit][9] \
                             + "\t" + matches[best_hit][10] + "\t" + matches[best_hit][11] + "\n"
             else:
-                string_2_write = read_name + "\tshortname\tlongname\t0.0\t1\t0\t0\t0\t0\t0\t0\t0"
-                print("No hit found for read id: {}".format(read_name))
+                string_2_write = read_name + "\tshortname\tlongname\t0.0\t1\t0\t0\t0\t0\t0\t0\t0\n"
+                #print("No hit found for read id: {}".format(read_name))
             results.write(string_2_write)
 
 
@@ -133,7 +141,6 @@ def summarize_blast_results(results_file, hits, perc_id_thresh, e_val_thresh):
     return hits
 
 def save_2_file(hits, output_file, verbosity):
-    output_file = output_file
     tuple_hits = [ [match.name, match.count, mean(match.pid), mean(match.e_val),
                     mean(match.alg_len), mean(match.missmatch), mean(match.gaps),
                     mean(match.gap_openings)] for short_name, match in hits.items()]
@@ -143,7 +150,7 @@ def save_2_file(hits, output_file, verbosity):
     if verbosity:
         print("\n---- Top 10 hits ----")
         print(*sorted_hits_str[:10], sep='')
-        print("\nSaving results to: {}".format(output_dir))
+        print("\nSaving results to: {}".format(output_file))
 
     filehandle = open(output_file, "w")
     filehandle.writelines(sorted_hits_str)
